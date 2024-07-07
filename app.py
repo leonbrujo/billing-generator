@@ -162,6 +162,14 @@ template = '''
             padding: 20px;
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+            height: auto;
         }
         h1 {
             text-align: center;
@@ -270,6 +278,7 @@ template = '''
 </head>
 <body>
     <div class="container">
+        <img src="https://t3.ftcdn.net/jpg/01/27/26/46/500_F_127264652_OnOtf0BnImbAWoTJyz8Mci9Owuy5hAbw.jpg" alt="Logo" class="logo">
         <h1>Billing Generator</h1>
         <form method="post">
             <div class="form-group">
