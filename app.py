@@ -32,7 +32,7 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file:
+    with open(config_file, 'w') as file):
         json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
@@ -194,4 +194,5 @@ template = '''
 '''
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
