@@ -129,12 +129,34 @@ def index():
             due_date = request.form.get('due_date')
             early_payment_date = request.form.get('early_payment_date')
             early_payment_discount = float(request.form.get('early_payment_discount'))
-            total_amount = water_amount
+            total_amount = water_amount + waste_amount
+
+            # Calcular proporciones de los servicios
             upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
-            water_discount = (water_amount / (water_amount + waste_amount)) * early_payment_discount
+            upper_waste, lower_waste = calculate_proportions(waste_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+
+            # Calcular descuentos de pago anticipado
+            water_discount_proportion = water_amount / total_amount
+            waste_discount_proportion = waste_amount / total_amount
+            water_discount = early_payment_discount * water_discount_proportion
+            waste_discount = early_payment_discount * waste_discount_proportion
             upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
             lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
-            text = generate_text("Water & Solid Waste", total_amount, upper_water, lower_water, from_date, to_date, due_date, upper_water_discount, lower_water_discount, early_payment_date)
+            upper_waste_discount = round(upper_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
+            lower_waste_discount = round(lower_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
+
+            text = generate_text(
+                "Water & Solid Waste",
+                total_amount,
+                upper_water + upper_waste,
+                lower_water + lower_waste,
+                from_date,
+                to_date,
+                due_date,
+                upper_water_discount + upper_waste_discount,
+                lower_water_discount + lower_waste_discount,
+                early_payment_date
+            )
         else:
             amount = float(request.form.get('amount'))
             due_date = request.form.get('due_date')
@@ -174,7 +196,7 @@ template = '''
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 180px;
+            width: 120px;
             height: auto;
         }
         .service-logo {
