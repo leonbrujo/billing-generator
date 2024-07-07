@@ -174,7 +174,7 @@ template = '''
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 120px;
+            width: 180px;
             height: auto;
         }
         .service-logo {
