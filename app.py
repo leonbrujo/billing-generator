@@ -114,9 +114,9 @@ def index():
             service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
             text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
         
-        return render_template_string(template, text=text, config=config)
+        return render_template_string(template, text=text, config=config, datetime=datetime, timedelta=timedelta)
     
-    return render_template_string(template, config=config)
+    return render_template_string(template, config=config, datetime=datetime, timedelta=timedelta)
 
 @app.route('/copy', methods=['POST'])
 def copy():
