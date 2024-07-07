@@ -159,11 +159,8 @@ template = '''
         <label for="amount">Total amount of the bill:</label>
         <input type="text" id="amount" name="amount">
         <br>
-        <label for="from_date">From date:</label>
-        <input type="text" id="from_date" name="from_date" value="{{ datetime.today().strftime('%d/%m/%Y') }}" class="datepicker">
-        <br>
-        <label for="to_date">To date:</label>
-        <input type="text" id="to_date" name="to_date" value="{{ (datetime.today() + timedelta(days=30)).strftime('%d/%m/%Y') }}" class="datepicker">
+        <label for="date_range">Select Date Range:</label>
+        <input type="text" id="date_range" name="date_range" class="daterange" placeholder="Select Date Range">
         <br>
         <label for="due_date">Due date:</label>
         <input type="text" id="due_date" name="due_date" class="datepicker">
@@ -196,8 +193,14 @@ template = '''
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Flatpickr
+            // Initialize Flatpickr for single date selection
             flatpickr('.datepicker', {
+                dateFormat: 'd/m/Y',
+                allowInput: true
+            });
+            // Initialize Flatpickr for date range selection
+            flatpickr('.daterange', {
+                mode: 'range',
                 dateFormat: 'd/m/Y',
                 allowInput: true
             });
@@ -206,7 +209,6 @@ template = '''
 </body>
 </html>
 '''
-
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
