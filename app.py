@@ -89,13 +89,15 @@ def index():
             if lower_unit_date:
                 config['lower_unit_start_date'] = lower_unit_date
             save_config(config)
+
+        date_range = request.form.get('date_range').split(' to ')
+        from_date = date_range[0]
+        to_date = date_range[1]
         
         service_choice = int(request.form.get('service_choice'))
         if service_choice == 3:
             water_amount = float(request.form.get('water_amount'))
             waste_amount = float(request.form.get('waste_amount'))
-            from_date = request.form.get('from_date')
-            to_date = request.form.get('to_date')
             due_date = request.form.get('due_date')
             early_payment_date = request.form.get('early_payment_date')
             early_payment_discount = float(request.form.get('early_payment_discount'))
@@ -107,8 +109,6 @@ def index():
             text = generate_text("Water & Solid Waste", total_amount, upper_water, lower_water, from_date, to_date, due_date, upper_water_discount, lower_water_discount, early_payment_date)
         else:
             amount = float(request.form.get('amount'))
-            from_date = request.form.get('from_date')
-            to_date = request.form.get('to_date')
             due_date = request.form.get('due_date')
             upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, config['upper_unit_start_date'], config['lower_unit_start_date'], consider_dates)
             service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
