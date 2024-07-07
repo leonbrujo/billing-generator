@@ -184,20 +184,25 @@ template = '''
             padding: 0;
             background-color: #f4f4f4;
         }
+        .header {
+            background-color: #0c3c77;
+            padding: 10px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            text-align: center;
+        }
+        .header img {
+            width: 150px;
+            height: auto;
+        }
         .container {
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 10px 10px;
             position: relative;
-        }
-        .logo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 120px;
-            height: auto;
         }
         .service-logo {
             display: block;
@@ -311,8 +316,10 @@ template = '''
     </style>
 </head>
 <body onload="toggleServiceLogo()">
+    <div class="header">
+        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo">
+    </div>
     <div class="container">
-        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo" class="logo">
         <h1>Billing Text Generator</h1>
         <form method="post">
             <div class="form-group">
