@@ -51,34 +51,35 @@ def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, 
     to_date = parse_date(to_date)
     total_days = (to_date - from_date).days + 1
     
-    upper_days = total_days
-    lower_days = total_days
-
+    # Calculando los días habitados para la unidad superior
     if upper_start:
         upper_start = parse_date(upper_start)
-        if upper_start > from_date:
-            upper_days = (to_date - upper_start).days + 1
-    
-    if lower_start:
-        lower_start = parse_date(lower_start)
-        if lower_start > from_date:
-            lower_days = (to_date - lower_start).days + 1
-    
+        upper_days = (to_date - max(from_date, upper_start)).days + 1
+    else:
+        upper_days = total_days
+
     if upper_end:
         upper_end = parse_date(upper_end)
         if upper_end < to_date:
-            upper_days = (upper_end - from_date).days + 1
-    
+            upper_days = (upper_end - max(from_date, upper_start)).days + 1
+
+    # Calculando los días habitados para la unidad inferior
+    if lower_start:
+        lower_start = parse_date(lower_start)
+        lower_days = (to_date - max(from_date, lower_start)).days + 1
+    else:
+        lower_days = total_days
+
     if lower_end:
         lower_end = parse_date(lower_end)
         if lower_end < to_date:
-            lower_days = (lower_end - from_date).days + 1
+            lower_days = (lower_end - max(from_date, lower_start)).days + 1
     
     upper_proportion = upper_days / total_days
     lower_proportion = lower_days / total_days
     
-    upper_amount = amount / 2 * upper_proportion
-    lower_amount = amount / 2 * lower_proportion
+    upper_amount = (amount / 2) * upper_proportion
+    lower_amount = (amount / 2) * lower_proportion
     
     return round(upper_amount, 2), round(lower_amount, 2)
 
