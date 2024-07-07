@@ -31,7 +31,7 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file):
+    with open(config_file, 'w') as file:
         json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
@@ -43,25 +43,42 @@ def parse_date(date_string):
             pass
     raise ValueError(f"Date {date_string} does not match expected formats")
 
-def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, consider_dates):
+def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, upper_end, lower_end, consider_dates):
     if not consider_dates:
         return round(amount / 2, 2), round(amount / 2, 2)
     
     from_date = parse_date(from_date)
     to_date = parse_date(to_date)
-    upper_start = parse_date(upper_start)
-    lower_start = parse_date(lower_start)
-    
     total_days = (to_date - from_date).days + 1
     
-    upper_days = (to_date - max(from_date, upper_start)).days + 1
-    lower_days = (to_date - max(from_date, lower_start)).days + 1
+    upper_days = total_days
+    lower_days = total_days
+
+    if upper_start:
+        upper_start = parse_date(upper_start)
+        if upper_start > from_date:
+            upper_days = (to_date - upper_start).days + 1
+    
+    if lower_start:
+        lower_start = parse_date(lower_start)
+        if lower_start > from_date:
+            lower_days = (to_date - lower_start).days + 1
+    
+    if upper_end:
+        upper_end = parse_date(upper_end)
+        if upper_end < to_date:
+            upper_days = (upper_end - from_date).days + 1
+    
+    if lower_end:
+        lower_end = parse_date(lower_end)
+        if lower_end < to_date:
+            lower_days = (lower_end - from_date).days + 1
     
     upper_proportion = upper_days / total_days
     lower_proportion = lower_days / total_days
     
-    upper_amount = amount * upper_proportion
-    lower_amount = amount * lower_proportion
+    upper_amount = amount / 2 * upper_proportion
+    lower_amount = amount / 2 * lower_proportion
     
     return round(upper_amount, 2), round(lower_amount, 2)
 
@@ -80,9 +97,14 @@ def index():
     config = load_config()
     if request.method == 'POST':
         consider_dates = request.form.get('consider_dates') == 'on'
+        consider_end_dates = request.form.get('consider_end_dates') == 'on'
+
+        upper_unit_date = request.form.get('upper_unit_start_date') if consider_dates else None
+        lower_unit_date = request.form.get('lower_unit_start_date') if consider_dates else None
+        upper_end_date = request.form.get('upper_unit_end_date') if consider_end_dates else None
+        lower_end_date = request.form.get('lower_unit_end_date') if consider_end_dates else None
+        
         if consider_dates:
-            upper_unit_date = request.form.get('upper_unit_start_date')
-            lower_unit_date = request.form.get('lower_unit_start_date')
             if upper_unit_date:
                 config['upper_unit_start_date'] = upper_unit_date
             if lower_unit_date:
@@ -101,7 +123,7 @@ def index():
             early_payment_date = request.form.get('early_payment_date')
             early_payment_discount = float(request.form.get('early_payment_discount'))
             total_amount = water_amount
-            upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, config['upper_unit_start_date'], config['lower_unit_start_date'], consider_dates)
+            upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates)
             water_discount = (water_amount / (water_amount + waste_amount)) * early_payment_discount
             upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
             lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
@@ -109,7 +131,7 @@ def index():
         else:
             amount = float(request.form.get('amount'))
             due_date = request.form.get('due_date')
-            upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, config['upper_unit_start_date'], config['lower_unit_start_date'], consider_dates)
+            upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates)
             service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
             text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
         
@@ -224,7 +246,7 @@ template = '''
             width: 100%;
             max-width: 700px;
         }
-        #date_fields {
+        #date_fields, #end_date_fields {
             display: none;
         }
         @media (max-width: 600px) {
@@ -264,6 +286,23 @@ template = '''
                 <div class="form-group">
                     <label for="lower_unit_start_date">Lower Unit start date:</label>
                     <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}" class="datepicker">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="consider_end_dates">Consider rental end dates for calculation:</label>
+                <label class="toggle-button">
+                    <input type="checkbox" id="consider_end_dates" name="consider_end_dates" onclick="toggleEndDateFields()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div id="end_date_fields">
+                <div class="form-group">
+                    <label for="upper_unit_end_date">Upper Unit end date:</label>
+                    <input type="text" id="upper_unit_end_date" name="upper_unit_end_date" class="datepicker">
+                </div>
+                <div class="form-group">
+                    <label for="lower_unit_end_date">Lower Unit end date:</label>
+                    <input type="text" id="lower_unit_end_date" name="lower_unit_end_date" class="datepicker">
                 </div>
             </div>
             <div class="form-group">
@@ -313,7 +352,7 @@ template = '''
         <div class="generated-text">
             <h2>Generated Text</h2>
             <textarea id="generated_text" rows="10" cols="50" readonly>{{ text }}</textarea>
-            <button onclick="copyToClipboard()">Copy to Clipboard</button>
+            <button type="button" onclick="copyToClipboard()">Copy to Clipboard</button>
         </div>
         {% endif %}
     </div>
@@ -342,6 +381,16 @@ template = '''
                 dateFields.style.display = "block";
             } else {
                 dateFields.style.display = "none";
+            }
+        }
+
+        function toggleEndDateFields() {
+            var checkBox = document.getElementById("consider_end_dates");
+            var endDateFields = document.getElementById("end_date_fields");
+            if (checkBox.checked == true){
+                endDateFields.style.display = "block";
+            } else {
+                endDateFields.style.display = "none";
             }
         }
 
