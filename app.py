@@ -43,8 +43,8 @@ def parse_date(date_string):
             pass
     raise ValueError(f"Date {date_string} does not match expected formats")
 
-def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, upper_end, lower_end, consider_dates):
-    if not consider_dates:
+def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, upper_end, lower_end, consider_dates, consider_end_dates):
+    if not consider_dates and not consider_end_dates:
         return round(amount / 2, 2), round(amount / 2, 2)
     
     from_date = parse_date(from_date)
@@ -52,42 +52,30 @@ def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, 
     total_days = (to_date - from_date).days + 1
     
     # Calculando los días habitados para la unidad superior
-    if upper_start:
+    if consider_dates and upper_start:
         upper_start = parse_date(upper_start)
-        if upper_start > from_date:
-            from_date_upper = upper_start
-        else:
-            from_date_upper = from_date
+        from_date_upper = max(from_date, upper_start)
     else:
         from_date_upper = from_date
 
-    if upper_end:
+    if consider_end_dates and upper_end:
         upper_end = parse_date(upper_end)
-        if upper_end < to_date:
-            to_date_upper = upper_end
-        else:
-            to_date_upper = to_date
+        to_date_upper = min(to_date, upper_end)
     else:
         to_date_upper = to_date
 
     upper_days = (to_date_upper - from_date_upper).days + 1 if from_date_upper <= to_date_upper else 0
     
     # Calculando los días habitados para la unidad inferior
-    if lower_start:
+    if consider_dates and lower_start:
         lower_start = parse_date(lower_start)
-        if lower_start > from_date:
-            from_date_lower = lower_start
-        else:
-            from_date_lower = from_date
+        from_date_lower = max(from_date, lower_start)
     else:
         from_date_lower = from_date
 
-    if lower_end:
+    if consider_end_dates and lower_end:
         lower_end = parse_date(lower_end)
-        if lower_end < to_date:
-            to_date_lower = lower_end
-        else:
-            to_date_lower = to_date
+        to_date_lower = min(to_date, lower_end)
     else:
         to_date_lower = to_date
 
@@ -142,7 +130,7 @@ def index():
             early_payment_date = request.form.get('early_payment_date')
             early_payment_discount = float(request.form.get('early_payment_discount'))
             total_amount = water_amount
-            upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates)
+            upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
             water_discount = (water_amount / (water_amount + waste_amount)) * early_payment_discount
             upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
             lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
@@ -150,7 +138,7 @@ def index():
         else:
             amount = float(request.form.get('amount'))
             due_date = request.form.get('due_date')
-            upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates)
+            upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
             service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
             text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
         
@@ -190,7 +178,7 @@ template = '''
             height: auto;
         }
         .service-logo {
-            display: none;
+            display: block;
             width: 100px;
             height: auto;
             margin-top: 10px;
@@ -300,9 +288,9 @@ template = '''
         }
     </style>
 </head>
-<body>
+<body onload="toggleServiceLogo()">
     <div class="container">
-        <img src="https://images-platform.99static.com/yC3Y85cAJ1iDlkuuD9QH6okOnDc=/513x554:1521x1562/fit-in/590x590/99designs-contests-attachments/97/97024/attachment_97024120" alt="Logo" class="logo">
+        <img src="https://th.bing.com/th/id/R.10e2576ce34f5f58daaca1af465a19bc?rik=uZhjybaCO4vrFA&riu=http%3a%2f%2fphotos.prnewswire.com%2fprnfull%2f20150515%2f216332LOGO%3fmax%3d200&ehk=r7QhN0bA8%2fk0u%2f4g0SLqdB6Uad5G%2fCCqL2%2fOgmOIubY%3d&risl=&pid=ImgRaw&r=0" alt="Logo" class="logo">
         <h1>Billing Generator</h1>
         <form method="post">
             <div class="form-group">
