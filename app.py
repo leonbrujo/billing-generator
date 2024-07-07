@@ -317,7 +317,7 @@ template = '''
 </head>
 <body onload="toggleServiceLogo()">
     <div class="header">
-        <img src="https://www.sourcefromontario.com/sites/default/files/event-logos/cropped-pay_sprint_black_horizotal_fwqo6q.png" alt="Logo">
+        <img src="https://images.prismic.io/gocardless/e8cc9826c7716923348f8abba0e278341bc99fc5_billingplatform_logo.png?auto=compress,format" alt="Logo">
     </div>
     <div class="container">
         <h1>Billing Text Generator</h1>
