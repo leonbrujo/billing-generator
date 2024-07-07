@@ -31,7 +31,7 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file):
+    with open(config_file, 'w') as file:
         json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
@@ -186,8 +186,14 @@ template = '''
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 50px;
+            width: 80px;
             height: auto;
+        }
+        .service-logo {
+            display: none;
+            width: 100px;
+            height: auto;
+            margin-top: 10px;
         }
         h1 {
             text-align: center;
@@ -335,11 +341,12 @@ template = '''
             </div>
             <div class="form-group">
                 <label for="service_choice">Select the service:</label>
-                <select id="service_choice" name="service_choice" onchange="toggleWaterSolidWasteDetails()">
+                <select id="service_choice" name="service_choice" onchange="toggleServiceLogo()">
                     <option value="1">Toronto Hydro</option>
                     <option value="2">Enbridge GAS</option>
                     <option value="3">Toronto Water & Solid Waste Management Services</option>
                 </select>
+                <img id="service_logo" class="service-logo">
             </div>
             <div class="form-group">
                 <label for="amount">Total amount of the bill:</label>
@@ -422,13 +429,20 @@ template = '''
             }
         }
 
-        function toggleWaterSolidWasteDetails() {
+        function toggleServiceLogo() {
             var serviceChoice = document.getElementById("service_choice").value;
-            var waterSolidWasteDetails = document.getElementById("water_solid_waste_details");
-            if (serviceChoice == "3") {
-                waterSolidWasteDetails.style.display = "block";
+            var serviceLogo = document.getElementById("service_logo");
+            if (serviceChoice == "1") {
+                serviceLogo.src = "https://shesconnectedblog.com/wp-content/uploads/2016/06/toronto-hydro-white.jpg";
+                serviceLogo.style.display = "block";
+            } else if (serviceChoice == "2") {
+                serviceLogo.src = "https://th.bing.com/th/id/R.ab75742a07102524619bc6231af6f0c6?rik=AjMSP%2fY40a6qCQ&riu=http%3a%2f%2fwww.keweenawreport.com%2fwp-content%2fuploads%2f2020%2f07%2fEnbridge-Logo-2048x928.jpg&ehk=t5QbHlUjH4WpThncLvPlexbq08Scc%2fX6bHtCHKi0W7I%3d&risl=&pid=ImgRaw&r=0";
+                serviceLogo.style.display = "block";
+            } else if (serviceChoice == "3") {
+                serviceLogo.src = "https://th.bing.com/th/id/OIP.E88519bruxfJo2y1pVEmlQAAAA?w=250&h=250&rs=1&pid=ImgDetMain";
+                serviceLogo.style.display = "block";
             } else {
-                waterSolidWasteDetails.style.display = "none";
+                serviceLogo.style.display = "none";
             }
         }
 
