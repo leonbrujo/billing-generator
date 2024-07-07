@@ -133,58 +133,150 @@ template = '''
     <title>Billing Generator</title>
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: grid;
+            gap: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 5px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group input[type="checkbox"] {
+            width: auto;
+        }
+        .form-group button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .generated-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .generated-text textarea {
+            width: 100%;
+            max-width: 700px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .form-group {
+                gap: 10px;
+            }
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 8px;
+            }
+            .form-group button {
+                padding: 8px 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Billing Generator</h1>
-    <form method="post">
-        <h2>Configuration</h2>
-        <label for="consider_dates">Consider rental start dates for calculation:</label>
-        <input type="checkbox" id="consider_dates" name="consider_dates">
-        <br>
-        <label for="upper_unit_start_date">Upper Unit start date:</label>
-        <input type="text" id="upper_unit_start_date" name="upper_unit_start_date" value="{{ config['upper_unit_start_date'] }}" class="datepicker">
-        <br>
-        <label for="lower_unit_start_date">Lower Unit start date:</label>
-        <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}" class="datepicker">
-        <br>
-        <h2>Service Selection</h2>
-        <label for="service_choice">Select the service:</label>
-        <select id="service_choice" name="service_choice">
-            <option value="1">Toronto Hydro</option>
-            <option value="2">Enbridge GAS</option>
-            <option value="3">Toronto Water & Solid Waste Management Services</option>
-        </select>
-        <br>
-        <h2>Service Details</h2>
-        <label for="amount">Total amount of the bill:</label>
-        <input type="number" inputmode="decimal" step="0.01" id="amount" name="amount">
-        <br>
-        <label for="date_range">Select Date Range:</label>
-        <input type="text" id="date_range" name="date_range" class="daterange" placeholder="Select Date Range">
-        <br>
-        <label for="due_date">Due date:</label>
-        <input type="text" id="due_date" name="due_date" class="datepicker">
-        <br>
-        <h2>Water & Solid Waste Management Services Details (if selected)</h2>
-        <label for="water_amount">Amount for Water/Sewer Services:</label>
-        <input type="number" inputmode="decimal" step="0.01" id="water_amount" name="water_amount">
-        <br>
-        <label for="waste_amount">Amount for Solid Waste Management Services:</label>
-        <input type="number" inputmode="decimal" step="0.01" id="waste_amount" name="waste_amount">
-        <br>
-        <label for="early_payment_date">Date for 'Amount Due if paid before':</label>
-        <input type="text" id="early_payment_date" name="early_payment_date" class="datepicker">
-        <br>
-        <label for="early_payment_discount">Early payment discount:</label>
-        <input type="number" inputmode="decimal" step="0.01" id="early_payment_discount" name="early_payment_discount">
-        <br>
-        <button type="submit">Generate Text</button>
-    </form>
-    {% if text %}
-    <h2>Generated Text</h2>
-    <textarea id="generated_text" rows="10" cols="50" readonly>{{ text }}</textarea>
-    <button onclick="copyToClipboard()">Copy to Clipboard</button>
-    {% endif %}
+    <div class="container">
+        <h1>Billing Generator</h1>
+        <form method="post">
+            <div class="form-group">
+                <label for="consider_dates">Consider rental start dates for calculation:</label>
+                <input type="checkbox" id="consider_dates" name="consider_dates">
+            </div>
+            <div class="form-group">
+                <label for="upper_unit_start_date">Upper Unit start date:</label>
+                <input type="text" id="upper_unit_start_date" name="upper_unit_start_date" value="{{ config['upper_unit_start_date'] }}" class="datepicker">
+            </div>
+            <div class="form-group">
+                <label for="lower_unit_start_date">Lower Unit start date:</label>
+                <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}" class="datepicker">
+            </div>
+            <div class="form-group">
+                <label for="service_choice">Select the service:</label>
+                <select id="service_choice" name="service_choice" onchange="toggleWaterSolidWasteDetails()">
+                    <option value="1">Toronto Hydro</option>
+                    <option value="2">Enbridge GAS</option>
+                    <option value="3">Toronto Water & Solid Waste Management Services</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount">Total amount of the bill:</label>
+                <input type="number" inputmode="decimal" step="0.01" id="amount" name="amount">
+            </div>
+            <div class="form-group">
+                <label for="date_range">Select Date Range:</label>
+                <input type="text" id="date_range" name="date_range" class="daterange" placeholder="Select Date Range">
+            </div>
+            <div class="form-group">
+                <label for="due_date">Due date:</label>
+                <input type="text" id="due_date" name="due_date" class="datepicker">
+            </div>
+            <div id="water_solid_waste_details" style="display: none;">
+                <h2>Water & Solid Waste Management Services Details</h2>
+                <div class="form-group">
+                    <label for="water_amount">Amount for Water/Sewer Services:</label>
+                    <input type="number" inputmode="decimal" step="0.01" id="water_amount" name="water_amount">
+                </div>
+                <div class="form-group">
+                    <label for="waste_amount">Amount for Solid Waste Management Services:</label>
+                    <input type="number" inputmode="decimal" step="0.01" id="waste_amount" name="waste_amount">
+                </div>
+                <div class="form-group">
+                    <label for="early_payment_date">Date for 'Amount Due if paid before':</label>
+                    <input type="text" id="early_payment_date" name="early_payment_date" class="datepicker">
+                </div>
+                <div class="form-group">
+                    <label for="early_payment_discount">Early payment discount:</label>
+                    <input type="number" inputmode="decimal" step="0.01" id="early_payment_discount" name="early_payment_discount">
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit">Generate Text</button>
+            </div>
+        </form>
+        {% if text %}
+        <div class="generated-text">
+            <h2>Generated Text</h2>
+            <textarea id="generated_text" rows="10" cols="50" readonly>{{ text }}</textarea>
+            <button onclick="copyToClipboard()">Copy to Clipboard</button>
+        </div>
+        {% endif %}
+    </div>
     
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -203,6 +295,16 @@ template = '''
             });
         });
 
+        function toggleWaterSolidWasteDetails() {
+            var serviceChoice = document.getElementById("service_choice").value;
+            var waterSolidWasteDetails = document.getElementById("water_solid_waste_details");
+            if (serviceChoice == "3") {
+                waterSolidWasteDetails.style.display = "block";
+            } else {
+                waterSolidWasteDetails.style.display = "none";
+            }
+        }
+
         function copyToClipboard() {
             var copyText = document.getElementById("generated_text");
             copyText.select();
@@ -213,8 +315,6 @@ template = '''
 </body>
 </html>
 '''
-
-
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
