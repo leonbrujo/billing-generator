@@ -152,7 +152,7 @@ template = '''
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Billing Generator</title>
+    <title>Billing Text Generator</title>
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
@@ -174,7 +174,7 @@ template = '''
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 80px;
+            width: 120px;
             height: auto;
         }
         .service-logo {
@@ -290,8 +290,8 @@ template = '''
 </head>
 <body onload="toggleServiceLogo()">
     <div class="container">
-        <img src="https://th.bing.com/th/id/R.10e2576ce34f5f58daaca1af465a19bc?rik=uZhjybaCO4vrFA&riu=http%3a%2f%2fphotos.prnewswire.com%2fprnfull%2f20150515%2f216332LOGO%3fmax%3d200&ehk=r7QhN0bA8%2fk0u%2f4g0SLqdB6Uad5G%2fCCqL2%2fOgmOIubY%3d&risl=&pid=ImgRaw&r=0" alt="Logo" class="logo">
-        <h1>Billing Generator</h1>
+        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo" class="logo">
+        <h1>Billing Text Generator</h1>
         <form method="post">
             <div class="form-group">
                 <label for="consider_dates">Consider rental start dates for calculation:</label>
