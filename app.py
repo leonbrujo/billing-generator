@@ -2,7 +2,6 @@ import json
 import os
 from datetime import datetime, timedelta
 from flask import Flask, request, render_template_string, redirect, url_for
-import pyperclip
 
 app = Flask(__name__)
 
@@ -32,7 +31,7 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file:
+    with open(config_file, 'w') as file):
         json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
@@ -80,7 +79,7 @@ def generate_text(service_name, amount, upper_amount, lower_amount, from_date, t
 def index():
     config = load_config()
     if request.method == 'POST':
-        consider_dates = 'consider_dates' in request.form
+        consider_dates = request.form.get('consider_dates') == 'on'
         if consider_dates:
             upper_unit_date = request.form.get('upper_unit_start_date')
             lower_unit_date = request.form.get('lower_unit_start_date')
@@ -117,12 +116,6 @@ def index():
         return render_template_string(template, text=text, config=config, datetime=datetime, timedelta=timedelta)
     
     return render_template_string(template, config=config, datetime=datetime, timedelta=timedelta)
-
-@app.route('/copy', methods=['POST'])
-def copy():
-    text = request.form.get('text')
-    pyperclip.copy(text)
-    return redirect(url_for('index'))
 
 # Template HTML
 template = '''
@@ -172,6 +165,45 @@ template = '''
         .form-group input[type="checkbox"] {
             width: auto;
         }
+        .toggle-button {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+        }
+        .toggle-button input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 25px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 17px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
         .form-group button {
             padding: 10px 20px;
             border: none;
@@ -191,6 +223,9 @@ template = '''
         .generated-text textarea {
             width: 100%;
             max-width: 700px;
+        }
+        #date_fields {
+            display: none;
         }
         @media (max-width: 600px) {
             .container {
@@ -216,15 +251,20 @@ template = '''
         <form method="post">
             <div class="form-group">
                 <label for="consider_dates">Consider rental start dates for calculation:</label>
-                <input type="checkbox" id="consider_dates" name="consider_dates">
+                <label class="toggle-button">
+                    <input type="checkbox" id="consider_dates" name="consider_dates" onclick="toggleDateFields()">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <div class="form-group">
-                <label for="upper_unit_start_date">Upper Unit start date:</label>
-                <input type="text" id="upper_unit_start_date" name="upper_unit_start_date" value="{{ config['upper_unit_start_date'] }}" class="datepicker">
-            </div>
-            <div class="form-group">
-                <label for="lower_unit_start_date">Lower Unit start date:</label>
-                <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}" class="datepicker">
+            <div id="date_fields">
+                <div class="form-group">
+                    <label for="upper_unit_start_date">Upper Unit start date:</label>
+                    <input type="text" id="upper_unit_start_date" name="upper_unit_start_date" value="{{ config['upper_unit_start_date'] }}" class="datepicker">
+                </div>
+                <div class="form-group">
+                    <label for="lower_unit_start_date">Lower Unit start date:</label>
+                    <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}" class="datepicker">
+                </div>
             </div>
             <div class="form-group">
                 <label for="service_choice">Select the service:</label>
@@ -294,6 +334,16 @@ template = '''
                 allowInput: true
             });
         });
+
+        function toggleDateFields() {
+            var checkBox = document.getElementById("consider_dates");
+            var dateFields = document.getElementById("date_fields");
+            if (checkBox.checked == true){
+                dateFields.style.display = "block";
+            } else {
+                dateFields.style.display = "none";
+            }
+        }
 
         function toggleWaterSolidWasteDetails() {
             var serviceChoice = document.getElementById("service_choice").value;
