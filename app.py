@@ -31,7 +31,7 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file:
+    with open(config_file, 'w') as file):
         json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
@@ -54,33 +54,51 @@ def calculate_proportions(amount, from_date, to_date, upper_start, lower_start, 
     # Calculando los días habitados para la unidad superior
     if upper_start:
         upper_start = parse_date(upper_start)
-        upper_days = (to_date - max(from_date, upper_start)).days + 1
+        if upper_start > from_date:
+            from_date_upper = upper_start
+        else:
+            from_date_upper = from_date
     else:
-        upper_days = total_days
+        from_date_upper = from_date
 
     if upper_end:
         upper_end = parse_date(upper_end)
         if upper_end < to_date:
-            upper_days = (upper_end - max(from_date, upper_start)).days + 1
+            to_date_upper = upper_end
+        else:
+            to_date_upper = to_date
+    else:
+        to_date_upper = to_date
 
+    upper_days = (to_date_upper - from_date_upper).days + 1 if from_date_upper <= to_date_upper else 0
+    
     # Calculando los días habitados para la unidad inferior
     if lower_start:
         lower_start = parse_date(lower_start)
-        lower_days = (to_date - max(from_date, lower_start)).days + 1
+        if lower_start > from_date:
+            from_date_lower = lower_start
+        else:
+            from_date_lower = from_date
     else:
-        lower_days = total_days
+        from_date_lower = from_date
 
     if lower_end:
         lower_end = parse_date(lower_end)
         if lower_end < to_date:
-            lower_days = (lower_end - max(from_date, lower_start)).days + 1
-    
+            to_date_lower = lower_end
+        else:
+            to_date_lower = to_date
+    else:
+        to_date_lower = to_date
+
+    lower_days = (to_date_lower - from_date_lower).days + 1 if from_date_lower <= to_date_lower else 0
+
     upper_proportion = upper_days / total_days
     lower_proportion = lower_days / total_days
-    
+
     upper_amount = (amount / 2) * upper_proportion
     lower_amount = (amount / 2) * lower_proportion
-    
+
     return round(upper_amount, 2), round(lower_amount, 2)
 
 # Función para Generar el Texto
@@ -278,7 +296,7 @@ template = '''
 </head>
 <body>
     <div class="container">
-        <img src="https://t3.ftcdn.net/jpg/01/27/26/46/500_F_127264652_OnOtf0BnImbAWoTJyz8Mci9Owuy5hAbw.jpg" alt="Logo" class="logo">
+        <img src="https://images-platform.99static.com/yC3Y85cAJ1iDlkuuD9QH6okOnDc=/513x554:1521x1562/fit-in/590x590/99designs-contests-attachments/97/97024/attachment_97024120" alt="Logo" class="logo">
         <h1>Billing Generator</h1>
         <form method="post">
             <div class="form-group">
