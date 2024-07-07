@@ -32,7 +32,7 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file):
+    with open(config_file, 'w') as file:
         json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
