@@ -157,7 +157,7 @@ template = '''
         <br>
         <h2>Service Details</h2>
         <label for="amount">Total amount of the bill:</label>
-        <input type="text" id="amount" name="amount">
+        <input type="number" inputmode="decimal" step="0.01" id="amount" name="amount">
         <br>
         <label for="date_range">Select Date Range:</label>
         <input type="text" id="date_range" name="date_range" class="daterange" placeholder="Select Date Range">
@@ -167,26 +167,23 @@ template = '''
         <br>
         <h2>Water & Solid Waste Management Services Details (if selected)</h2>
         <label for="water_amount">Amount for Water/Sewer Services:</label>
-        <input type="text" id="water_amount" name="water_amount">
+        <input type="number" inputmode="decimal" step="0.01" id="water_amount" name="water_amount">
         <br>
         <label for="waste_amount">Amount for Solid Waste Management Services:</label>
-        <input type="text" id="waste_amount" name="waste_amount">
+        <input type="number" inputmode="decimal" step="0.01" id="waste_amount" name="waste_amount">
         <br>
         <label for="early_payment_date">Date for 'Amount Due if paid before':</label>
         <input type="text" id="early_payment_date" name="early_payment_date" class="datepicker">
         <br>
         <label for="early_payment_discount">Early payment discount:</label>
-        <input type="text" id="early_payment_discount" name="early_payment_discount">
+        <input type="number" inputmode="decimal" step="0.01" id="early_payment_discount" name="early_payment_discount">
         <br>
         <button type="submit">Generate Text</button>
     </form>
     {% if text %}
     <h2>Generated Text</h2>
-    <textarea rows="10" cols="50" readonly>{{ text }}</textarea>
-    <form method="post" action="{{ url_for('copy') }}">
-        <input type="hidden" name="text" value="{{ text }}">
-        <button type="submit">Copy to Clipboard</button>
-    </form>
+    <textarea id="generated_text" rows="10" cols="50" readonly>{{ text }}</textarea>
+    <button onclick="copyToClipboard()">Copy to Clipboard</button>
     {% endif %}
     
     <!-- Flatpickr JS -->
@@ -205,10 +202,19 @@ template = '''
                 allowInput: true
             });
         });
+
+        function copyToClipboard() {
+            var copyText = document.getElementById("generated_text");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Copied the text: " + copyText.value);
+        }
     </script>
 </body>
 </html>
 '''
+
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
