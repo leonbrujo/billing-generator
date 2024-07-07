@@ -131,6 +131,8 @@ template = '''
 <head>
     <meta charset="utf-8">
     <title>Billing Generator</title>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <h1>Billing Generator</h1>
@@ -140,10 +142,10 @@ template = '''
         <input type="checkbox" id="consider_dates" name="consider_dates">
         <br>
         <label for="upper_unit_start_date">Upper Unit start date:</label>
-        <input type="text" id="upper_unit_start_date" name="upper_unit_start_date" value="{{ config['upper_unit_start_date'] }}">
+        <input type="text" id="upper_unit_start_date" name="upper_unit_start_date" value="{{ config['upper_unit_start_date'] }}" class="datepicker">
         <br>
         <label for="lower_unit_start_date">Lower Unit start date:</label>
-        <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}">
+        <input type="text" id="lower_unit_start_date" name="lower_unit_start_date" value="{{ config['lower_unit_start_date'] }}" class="datepicker">
         <br>
         <h2>Service Selection</h2>
         <label for="service_choice">Select the service:</label>
@@ -158,13 +160,13 @@ template = '''
         <input type="text" id="amount" name="amount">
         <br>
         <label for="from_date">From date:</label>
-        <input type="text" id="from_date" name="from_date" value="{{ datetime.today().strftime('%d/%m/%Y') }}">
+        <input type="text" id="from_date" name="from_date" value="{{ datetime.today().strftime('%d/%m/%Y') }}" class="datepicker">
         <br>
         <label for="to_date">To date:</label>
-        <input type="text" id="to_date" name="to_date" value="{{ (datetime.today() + timedelta(days=30)).strftime('%d/%m/%Y') }}">
+        <input type="text" id="to_date" name="to_date" value="{{ (datetime.today() + timedelta(days=30)).strftime('%d/%m/%Y') }}" class="datepicker">
         <br>
         <label for="due_date">Due date:</label>
-        <input type="text" id="due_date" name="due_date">
+        <input type="text" id="due_date" name="due_date" class="datepicker">
         <br>
         <h2>Water & Solid Waste Management Services Details (if selected)</h2>
         <label for="water_amount">Amount for Water/Sewer Services:</label>
@@ -174,7 +176,7 @@ template = '''
         <input type="text" id="waste_amount" name="waste_amount">
         <br>
         <label for="early_payment_date">Date for 'Amount Due if paid before':</label>
-        <input type="text" id="early_payment_date" name="early_payment_date">
+        <input type="text" id="early_payment_date" name="early_payment_date" class="datepicker">
         <br>
         <label for="early_payment_discount">Early payment discount:</label>
         <input type="text" id="early_payment_discount" name="early_payment_discount">
@@ -189,9 +191,22 @@ template = '''
         <button type="submit">Copy to Clipboard</button>
     </form>
     {% endif %}
+    
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Flatpickr
+            flatpickr('.datepicker', {
+                dateFormat: 'd/m/Y',
+                allowInput: true
+            });
+        });
+    </script>
 </body>
 </html>
 '''
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
