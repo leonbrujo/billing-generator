@@ -294,7 +294,7 @@ template = '''
             width: 100%;
             max-width: 700px;
         }
-        #date_fields, #end_date_fields {
+        #date_fields, #end_date_fields, #water_solid_waste_details {
             display: none;
         }
         @media (max-width: 600px) {
@@ -317,7 +317,7 @@ template = '''
 </head>
 <body onload="toggleServiceLogo()">
     <div class="header">
-        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo">
+        <img src="https://www.sourcefromontario.com/sites/default/files/event-logos/cropped-pay_sprint_black_horizotal_fwqo6q.png" alt="Logo">
     </div>
     <div class="container">
         <h1>Billing Text Generator</h1>
@@ -365,19 +365,7 @@ template = '''
                 </select>
                 <img id="service_logo" class="service-logo">
             </div>
-            <div class="form-group">
-                <label for="amount">Total amount of the bill:</label>
-                <input type="number" inputmode="decimal" step="0.01" id="amount" name="amount">
-            </div>
-            <div class="form-group">
-                <label for="date_range">Select Date Range:</label>
-                <input type="text" id="date_range" name="date_range" class="daterange" placeholder="Select Date Range">
-            </div>
-            <div class="form-group">
-                <label for="due_date">Due date:</label>
-                <input type="text" id="due_date" name="due_date" class="datepicker">
-            </div>
-            <div id="water_solid_waste_details" style="display: none;">
+            <div id="water_solid_waste_details">
                 <h2>Water & Solid Waste Management Services Details</h2>
                 <div class="form-group">
                     <label for="water_amount">Amount for Water/Sewer Services:</label>
@@ -395,6 +383,18 @@ template = '''
                     <label for="early_payment_discount">Early payment discount:</label>
                     <input type="number" inputmode="decimal" step="0.01" id="early_payment_discount" name="early_payment_discount">
                 </div>
+            </div>
+            <div class="form-group">
+                <label for="amount">Total amount of the bill:</label>
+                <input type="number" inputmode="decimal" step="0.01" id="amount" name="amount">
+            </div>
+            <div class="form-group">
+                <label for="date_range">Select Date Range:</label>
+                <input type="text" id="date_range" name="date_range" class="daterange" placeholder="Select Date Range">
+            </div>
+            <div class="form-group">
+                <label for="due_date">Due date:</label>
+                <input type="text" id="due_date" name="due_date" class="datepicker">
             </div>
             <div class="form-group">
                 <button type="submit">Generate Text</button>
@@ -449,17 +449,22 @@ template = '''
         function toggleServiceLogo() {
             var serviceChoice = document.getElementById("service_choice").value;
             var serviceLogo = document.getElementById("service_logo");
+            var waterSolidWasteDetails = document.getElementById("water_solid_waste_details");
             if (serviceChoice == "1") {
                 serviceLogo.src = "https://shesconnectedblog.com/wp-content/uploads/2016/06/toronto-hydro-white.jpg";
                 serviceLogo.style.display = "block";
+                waterSolidWasteDetails.style.display = "none";
             } else if (serviceChoice == "2") {
                 serviceLogo.src = "https://th.bing.com/th/id/R.ab75742a07102524619bc6231af6f0c6?rik=AjMSP%2fY40a6qCQ&riu=http%3a%2f%2fwww.keweenawreport.com%2fwp-content%2fuploads%2f2020%2f07%2fEnbridge-Logo-2048x928.jpg&ehk=t5QbHlUjH4WpThncLvPlexbq08Scc%2fX6bHtCHKi0W7I%3d&risl=&pid=ImgRaw&r=0";
                 serviceLogo.style.display = "block";
+                waterSolidWasteDetails.style.display = "none";
             } else if (serviceChoice == "3") {
                 serviceLogo.src = "https://th.bing.com/th/id/OIP.E88519bruxfJo2y1pVEmlQAAAA?w=250&h=250&rs=1&pid=ImgDetMain";
                 serviceLogo.style.display = "block";
+                waterSolidWasteDetails.style.display = "block";
             } else {
                 serviceLogo.style.display = "none";
+                waterSolidWasteDetails.style.display = "none";
             }
         }
 
