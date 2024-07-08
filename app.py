@@ -328,7 +328,7 @@ template = '''
 </head>
 <body onload="toggleServiceLogo()">
     <div class="header">
-        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo">
+        <img src="https://effiasoft.com/wp-content/uploads/JustBilling-Platform-300.png" alt="Logo">
     </div>
     <div class="container">
         <h1>Billing Text Generator</h1>
