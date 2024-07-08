@@ -185,7 +185,7 @@ template = '''
             background-color: #f4f4f4;
         }
         .header {
-            background-color: #0c3c77;
+            background-color: #1E90FF;
             padding: 10px;
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
@@ -231,6 +231,7 @@ template = '''
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 16px;
         }
         .form-group input[type="checkbox"] {
             width: auto;
@@ -281,6 +282,7 @@ template = '''
             color: white;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
         }
         .form-group button:hover {
             background-color: #0056b3;
@@ -293,6 +295,7 @@ template = '''
         .generated-text textarea {
             width: 100%;
             max-width: 700px;
+            font-size: 16px;
         }
         #date_fields, #end_date_fields, #water_solid_waste_details {
             display: none;
@@ -308,16 +311,24 @@ template = '''
             .form-group select,
             .form-group textarea {
                 padding: 8px;
+                font-size: 14px;
             }
             .form-group button {
                 padding: 8px 16px;
+                font-size: 14px;
+            }
+            .header img {
+                width: 100px;
+            }
+            h1 {
+                font-size: 18px;
             }
         }
     </style>
 </head>
 <body onload="toggleServiceLogo()">
     <div class="header">
-        <img src="https://images.prismic.io/gocardless/e8cc9826c7716923348f8abba0e278341bc99fc5_billingplatform_logo.png?auto=compress,format" alt="Logo">
+        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo">
     </div>
     <div class="container">
         <h1>Billing Text Generator</h1>
