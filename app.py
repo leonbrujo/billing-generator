@@ -190,10 +190,19 @@ template = '''
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .header img {
-            width: 150px;
+            width: 50px;
             height: auto;
+        }
+        .header h1 {
+            margin: 0;
+            padding-left: 10px;
+            color: white;
+            font-size: 24px;
         }
         .container {
             max-width: 800px;
@@ -210,7 +219,7 @@ template = '''
             height: auto;
             margin-top: 10px;
         }
-        h1 {
+        h2 {
             text-align: center;
             color: #333;
         }
@@ -318,9 +327,9 @@ template = '''
                 font-size: 14px;
             }
             .header img {
-                width: 100px;
+                width: 30px;
             }
-            h1 {
+            .header h1 {
                 font-size: 18px;
             }
         }
@@ -328,10 +337,11 @@ template = '''
 </head>
 <body onload="toggleServiceLogo()">
     <div class="header">
-        <img src="https://reveneer.io/wp-content/uploads/2020/09/Billing-Platform-site.png" alt="Logo">
+        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo">
+        <h1>Billing Text Generator</h1>
     </div>
     <div class="container">
-        <h1>Billing Text Generator</h1>
+        <h2>Billing Text Generator</h2>
         <form method="post">
             <div class="form-group">
                 <label for="consider_dates">Consider rental start dates for calculation:</label>
