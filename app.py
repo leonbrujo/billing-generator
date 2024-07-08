@@ -328,7 +328,7 @@ template = '''
 </head>
 <body onload="toggleServiceLogo()">
     <div class="header">
-        <img src="https://effiasoft.com/wp-content/uploads/JustBilling-Platform-300.png" alt="Logo">
+        <img src="https://reveneer.io/wp-content/uploads/2020/09/Billing-Platform-site.png" alt="Logo">
     </div>
     <div class="container">
         <h1>Billing Text Generator</h1>
