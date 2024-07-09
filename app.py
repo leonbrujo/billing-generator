@@ -214,6 +214,14 @@ def index():
 
 @app.route('/ledger', methods=['GET', 'POST'])
 def ledger_page():
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    total = len(ledger)
+    pages = (total + per_page - 1) // per_page
+    start = (page - 1) * per_page
+    end = start + per_page
+    current_ledger = ledger[start:end]
+
     if request.method == 'POST':
         if 'add' in request.form:
             date = request.form.get('date')
@@ -225,7 +233,7 @@ def ledger_page():
             index = int(request.form.get('delete'))
             delete_transaction(index)
     
-    return render_template_string(ledger_template, ledger=ledger, datetime=datetime)
+    return render_template_string(ledger_template, ledger=current_ledger, datetime=datetime, page=page, pages=pages)
 
 # Template HTML
 template = '''
@@ -658,6 +666,20 @@ ledger_template = '''
         th {
             background-color: #f4f4f4;
         }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            color: #007bff;
+            padding: 8px 16px;
+            text-decoration: none;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+            border-radius: 5px;
+        }
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -740,6 +762,14 @@ ledger_template = '''
                 {% endfor %}
             </tbody>
         </table>
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('ledger_page', page=page-1) }}">Previous</a>
+            {% endif %}
+            {% if page < pages %}
+            <a href="{{ url_for('ledger_page', page=page+1) }}">Next</a>
+            {% endif %}
+        </div>
         <div class="form-group">
             <button onclick="window.location.href='/'">Back to Main</button>
         </div>
