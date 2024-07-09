@@ -15,17 +15,17 @@ ledger_file = 'ledger.json'
 
 # Función para cargar o inicializar la configuración
 def load_config():
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as file:
-            try:
+    try:
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as file:
                 config = json.load(file)
-            except json.JSONDecodeError:
-                config = initialize_config()
-                save_config(config)
-    else:
-        config = initialize_config()
-        save_config(config)
-    return config
+        else:
+            config = initialize_config()
+            save_config(config)
+        return config
+    except Exception as e:
+        logging.error("Error loading config: %s", e)
+        return initialize_config()
 
 # Función para inicializar la configuración por defecto
 def initialize_config():
@@ -36,27 +36,33 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    with open(config_file, 'w') as file:
-        json.dump(config, file, indent=4)
+    try:
+        with open(config_file, 'w') as file:
+            json.dump(config, file, indent=4)
+    except Exception as e:
+        logging.error("Error saving config: %s", e)
 
 # Función para cargar o inicializar el ledger
 def load_ledger():
-    if os.path.exists(ledger_file):
-        with open(ledger_file, 'r') as file:
-            try:
+    try:
+        if os.path.exists(ledger_file):
+            with open(ledger_file, 'r') as file:
                 ledger = json.load(file)
-            except json.JSONDecodeError:
-                ledger = []
-                save_ledger(ledger)
-    else:
-        ledger = []
-        save_ledger(ledger)
-    return ledger
+        else:
+            ledger = []
+            save_ledger(ledger)
+        return ledger
+    except Exception as e:
+        logging.error("Error loading ledger: %s", e)
+        return []
 
 # Función para guardar el ledger
 def save_ledger(ledger):
-    with open(ledger_file, 'w') as file:
-        json.dump(ledger, file, indent=4)
+    try:
+        with open(ledger_file, 'w') as file:
+            json.dump(ledger, file, indent=4)
+    except Exception as e:
+        logging.error("Error saving ledger: %s", e)
 
 # Función para Calcular Proporciones y Verificar Fechas
 def parse_date(date_string):
@@ -127,93 +133,103 @@ ledger = load_ledger()
 
 # Función para agregar transacción al ledger
 def add_transaction(date, transaction_type, debit, credit):
-    balance = ledger[-1]['balance'] if ledger else 0
-    if debit:
-        balance -= debit
-    if credit:
-        balance += credit
-    ledger.append({
-        'date': date,
-        'transaction_type': transaction_type,
-        'debit': debit,
-        'credit': credit,
-        'balance': balance
-    })
-    save_ledger(ledger)
+    try:
+        balance = ledger[-1]['balance'] if ledger else 0
+        if debit:
+            balance -= debit
+        if credit:
+            balance += credit
+        ledger.append({
+            'date': date,
+            'transaction_type': transaction_type,
+            'debit': debit,
+            'credit': credit,
+            'balance': balance
+        })
+        save_ledger(ledger)
+    except Exception as e:
+        logging.error("Error adding transaction: %s", e)
 
 # Función para eliminar transacción del ledger
 def delete_transaction(index):
-    if 0 <= index < len(ledger):
-        del ledger[index]
-        save_ledger(ledger)
+    try:
+        if 0 <= index < len(ledger):
+            del ledger[index]
+            save_ledger(ledger)
+    except Exception as e:
+        logging.error("Error deleting transaction: %s", e)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     config = load_config()
-    if request.method == 'POST':
-        consider_dates = request.form.get('consider_dates') == 'on'
-        consider_end_dates = request.form.get('consider_end_dates') == 'on'
+    try:
+        if request.method == 'POST':
+            consider_dates = request.form.get('consider_dates') == 'on'
+            consider_end_dates = request.form.get('consider_end_dates') == 'on'
 
-        upper_unit_date = request.form.get('upper_unit_start_date') if consider_dates else None
-        lower_unit_date = request.form.get('lower_unit_start_date') if consider_dates else None
-        upper_end_date = request.form.get('upper_unit_end_date') if consider_end_dates else None
-        lower_end_date = request.form.get('lower_unit_end_date') if consider_end_dates else None
-        
-        if consider_dates:
-            if upper_unit_date:
-                config['upper_unit_start_date'] = upper_unit_date
-            if lower_unit_date:
-                config['lower_unit_start_date'] = lower_unit_date
-            save_config(config)
+            upper_unit_date = request.form.get('upper_unit_start_date') if consider_dates else None
+            lower_unit_date = request.form.get('lower_unit_start_date') if consider_dates else None
+            upper_end_date = request.form.get('upper_unit_end_date') if consider_end_dates else None
+            lower_end_date = request.form.get('lower_unit_end_date') if consider_end_dates else None
+            
+            if consider_dates:
+                if upper_unit_date:
+                    config['upper_unit_start_date'] = upper_unit_date
+                if lower_unit_date:
+                    config['lower_unit_start_date'] = lower_unit_date
+                save_config(config)
 
-        date_range = request.form.get('date_range').split(' to ')
-        from_date = date_range[0]
-        to_date = date_range[1]
-        
-        service_choice = int(request.form.get('service_choice'))
-        if service_choice == 3:
-            water_amount = float(request.form.get('water_amount'))
-            waste_amount = float(request.form.get('waste_amount'))
-            due_date = request.form.get('due_date')
-            early_payment_date = request.form.get('early_payment_date')
-            early_payment_discount = float(request.form.get('early_payment_discount'))
-            total_amount = water_amount + waste_amount
+            date_range = request.form.get('date_range').split(' to ')
+            from_date = date_range[0]
+            to_date = date_range[1]
+            
+            service_choice = int(request.form.get('service_choice'))
+            if service_choice == 3:
+                water_amount = float(request.form.get('water_amount'))
+                waste_amount = float(request.form.get('waste_amount'))
+                due_date = request.form.get('due_date')
+                early_payment_date = request.form.get('early_payment_date')
+                early_payment_discount = float(request.form.get('early_payment_discount'))
+                total_amount = water_amount + waste_amount
 
-            # Calcular proporciones de los servicios
-            upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
-            upper_waste, lower_waste = calculate_proportions(waste_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+                # Calcular proporciones de los servicios
+                upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+                upper_waste, lower_waste = calculate_proportions(waste_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
 
-            # Calcular descuentos de pago anticipado
-            water_discount_proportion = water_amount / total_amount
-            waste_discount_proportion = waste_amount / total_amount
-            water_discount = early_payment_discount * water_discount_proportion
-            waste_discount = early_payment_discount * waste_discount_proportion
-            upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
-            lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
-            upper_waste_discount = round(upper_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
-            lower_waste_discount = round(lower_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
+                # Calcular descuentos de pago anticipado
+                water_discount_proportion = water_amount / total_amount
+                waste_discount_proportion = waste_amount / total_amount
+                water_discount = early_payment_discount * water_discount_proportion
+                waste_discount = early_payment_discount * waste_discount_proportion
+                upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
+                lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
+                upper_waste_discount = round(upper_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
+                lower_waste_discount = round(lower_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
 
-            text = generate_text(
-                "Water & Solid Waste",
-                total_amount,
-                upper_water + upper_waste,
-                lower_water + lower_waste,
-                from_date,
-                to_date,
-                due_date,
-                upper_water_discount + upper_waste_discount,
-                lower_water_discount + lower_waste_discount,
-                early_payment_date
-            )
-        else:
-            amount = float(request.form.get('amount'))
-            due_date = request.form.get('due_date')
-            upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
-            service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
-            text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
-        
-        return render_template_string(template, text=text, config=config, datetime=datetime, timedelta=timedelta)
-    
+                text = generate_text(
+                    "Water & Solid Waste",
+                    total_amount,
+                    upper_water + upper_waste,
+                    lower_water + lower_waste,
+                    from_date,
+                    to_date,
+                    due_date,
+                    upper_water_discount + upper_waste_discount,
+                    lower_water_discount + lower_waste_discount,
+                    early_payment_date
+                )
+            else:
+                amount = float(request.form.get('amount'))
+                due_date = request.form.get('due_date')
+                upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+                service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
+                text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
+            
+            return render_template_string(template, text=text, config=config, datetime=datetime, timedelta=timedelta)
+    except Exception as e:
+        logging.error("Error in index route: %s", e)
+        return "Internal Server Error", 500
+
     return render_template_string(template, config=config, datetime=datetime, timedelta=timedelta)
 
 @app.route('/ledger', methods=['GET', 'POST'])
