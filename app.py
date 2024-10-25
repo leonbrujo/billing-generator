@@ -1,31 +1,26 @@
 import json
 import os
-import logging
 from datetime import datetime, timedelta
 from flask import Flask, request, render_template_string, redirect, url_for
 
 app = Flask(__name__)
 
-# Configurar el registro (logging)
-logging.basicConfig(level=logging.DEBUG)
-
-# Archivos de configuración y ledger
+# Archivo de configuración
 config_file = 'config.json'
-ledger_file = 'ledger.json'
 
 # Función para cargar o inicializar la configuración
 def load_config():
-    try:
-        if os.path.exists(config_file):
-            with open(config_file, 'r') as file:
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as file:
+            try:
                 config = json.load(file)
-        else:
-            config = initialize_config()
-            save_config(config)
-        return config
-    except Exception as e:
-        logging.error("Error loading config: %s", e)
-        return initialize_config()
+            except json.JSONDecodeError:
+                config = initialize_config()
+                save_config(config)
+    else:
+        config = initialize_config()
+        save_config(config)
+    return config
 
 # Función para inicializar la configuración por defecto
 def initialize_config():
@@ -36,33 +31,8 @@ def initialize_config():
 
 # Función para guardar la configuración
 def save_config(config):
-    try:
-        with open(config_file, 'w') as file:
-            json.dump(config, file, indent=4)
-    except Exception as e:
-        logging.error("Error saving config: %s", e)
-
-# Función para cargar o inicializar el ledger
-def load_ledger():
-    try:
-        if os.path.exists(ledger_file):
-            with open(ledger_file, 'r') as file:
-                ledger = json.load(file)
-        else:
-            ledger = []
-            save_ledger(ledger)
-        return ledger
-    except Exception as e:
-        logging.error("Error loading ledger: %s", e)
-        return []
-
-# Función para guardar el ledger
-def save_ledger(ledger):
-    try:
-        with open(ledger_file, 'w') as file:
-            json.dump(ledger, file, indent=4)
-    except Exception as e:
-        logging.error("Error saving ledger: %s", e)
+    with open(config_file, 'w') as file:
+        json.dump(config, file, indent=4)
 
 # Función para Calcular Proporciones y Verificar Fechas
 def parse_date(date_string):
@@ -128,136 +98,75 @@ def generate_text(service_name, amount, upper_amount, lower_amount, from_date, t
         text += f"\n\nIf payment is made after {due_date.upper()}, then the payment should be {late_amount} CAD"
     return text
 
-# Inicializar ledger (libro mayor)
-ledger = load_ledger()
-
-# Función para agregar transacción al ledger
-def add_transaction(date, transaction_type, debit, credit):
-    try:
-        balance = ledger[-1]['balance'] if ledger else 0
-        if debit:
-            balance -= debit
-        if credit:
-            balance += credit
-        ledger.append({
-            'date': date,
-            'transaction_type': transaction_type,
-            'debit': debit,
-            'credit': credit,
-            'balance': balance
-        })
-        save_ledger(ledger)
-    except Exception as e:
-        logging.error("Error adding transaction: %s", e)
-
-# Función para eliminar transacción del ledger
-def delete_transaction(index):
-    try:
-        if 0 <= index < len(ledger):
-            del ledger[index]
-            save_ledger(ledger)
-    except Exception as e:
-        logging.error("Error deleting transaction: %s", e)
-
+# Rutas de Flask
 @app.route('/', methods=['GET', 'POST'])
 def index():
     config = load_config()
-    try:
-        if request.method == 'POST':
-            consider_dates = request.form.get('consider_dates') == 'on'
-            consider_end_dates = request.form.get('consider_end_dates') == 'on'
+    if request.method == 'POST':
+        consider_dates = request.form.get('consider_dates') == 'on'
+        consider_end_dates = request.form.get('consider_end_dates') == 'on'
 
-            upper_unit_date = request.form.get('upper_unit_start_date') if consider_dates else None
-            lower_unit_date = request.form.get('lower_unit_start_date') if consider_dates else None
-            upper_end_date = request.form.get('upper_unit_end_date') if consider_end_dates else None
-            lower_end_date = request.form.get('lower_unit_end_date') if consider_end_dates else None
-            
-            if consider_dates:
-                if upper_unit_date:
-                    config['upper_unit_start_date'] = upper_unit_date
-                if lower_unit_date:
-                    config['lower_unit_start_date'] = lower_unit_date
-                save_config(config)
-
-            date_range = request.form.get('date_range').split(' to ')
-            from_date = date_range[0]
-            to_date = date_range[1]
-            
-            service_choice = int(request.form.get('service_choice'))
-            if service_choice == 3:
-                water_amount = float(request.form.get('water_amount'))
-                waste_amount = float(request.form.get('waste_amount'))
-                due_date = request.form.get('due_date')
-                early_payment_date = request.form.get('early_payment_date')
-                early_payment_discount = float(request.form.get('early_payment_discount'))
-                total_amount = water_amount + waste_amount
-
-                # Calcular proporciones de los servicios
-                upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
-                upper_waste, lower_waste = calculate_proportions(waste_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
-
-                # Calcular descuentos de pago anticipado
-                water_discount_proportion = water_amount / total_amount
-                waste_discount_proportion = waste_amount / total_amount
-                water_discount = early_payment_discount * water_discount_proportion
-                waste_discount = early_payment_discount * waste_discount_proportion
-                upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
-                lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
-                upper_waste_discount = round(upper_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
-                lower_waste_discount = round(lower_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
-
-                text = generate_text(
-                    "Water & Solid Waste",
-                    total_amount,
-                    upper_water + upper_waste,
-                    lower_water + lower_waste,
-                    from_date,
-                    to_date,
-                    due_date,
-                    upper_water_discount + upper_waste_discount,
-                    lower_water_discount + lower_waste_discount,
-                    early_payment_date
-                )
-            else:
-                amount = float(request.form.get('amount'))
-                due_date = request.form.get('due_date')
-                upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
-                service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
-                text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
-            
-            return render_template_string(template, text=text, config=config, datetime=datetime, timedelta=timedelta)
-    except Exception as e:
-        logging.error("Error in index route: %s", e)
-        return "Internal Server Error", 500
-
-    return render_template_string(template, config=config, datetime=datetime, timedelta=timedelta)
-
-@app.route('/ledger', methods=['GET', 'POST'])
-def ledger_page():
-    try:
-        page = int(request.args.get('page', 1))
-        per_page = 10
-        total = len(ledger)
-        pages = (total + per_page - 1) // per_page
-        start = (page - 1) * per_page
-        end = start + per_page
-        current_ledger = ledger[start:end]
-
-        if request.method == 'POST':
-            if 'add' in request.form:
-                date = request.form.get('date')
-                transaction_type = request.form.get('transaction_type')
-                debit = float(request.form.get('debit')) if request.form.get('debit') else None
-                credit = float(request.form.get('credit')) if request.form.get('credit') else None
-                add_transaction(date, transaction_type, debit, credit)
-            elif 'delete' in request.form:
-                index = int(request.form.get('delete'))
-                delete_transaction(index)
+        upper_unit_date = request.form.get('upper_unit_start_date') if consider_dates else None
+        lower_unit_date = request.form.get('lower_unit_start_date') if consider_dates else None
+        upper_end_date = request.form.get('upper_unit_end_date') if consider_end_dates else None
+        lower_end_date = request.form.get('lower_unit_end_date') if consider_end_dates else None
         
-        return render_template_string(ledger_template, ledger=current_ledger, datetime=datetime, page=page, pages=pages)
-    except Exception as e:
-        logging.error("Error in ledger_page: %s", e)
-        return "Internal Server Error", 500
+        if consider_dates:
+            if upper_unit_date:
+                config['upper_unit_start_date'] = upper_unit_date
+            if lower_unit_date:
+                config['lower_unit_start_date'] = lower_unit_date
+            save_config(config)
+
+        date_range = request.form.get('date_range').split(' to ')
+        from_date = date_range[0]
+        to_date = date_range[1]
+        
+        service_choice = int(request.form.get('service_choice'))
+        if service_choice == 3:
+            water_amount = float(request.form.get('water_amount'))
+            waste_amount = float(request.form.get('waste_amount'))
+            due_date = request.form.get('due_date')
+            early_payment_date = request.form.get('early_payment_date')
+            early_payment_discount = float(request.form.get('early_payment_discount'))
+            total_amount = water_amount + waste_amount
+
+            # Calcular proporciones de los servicios
+            upper_water, lower_water = calculate_proportions(water_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+            upper_waste, lower_waste = calculate_proportions(waste_amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+
+            # Calcular descuentos de pago anticipado
+            water_discount_proportion = water_amount / total_amount
+            waste_discount_proportion = waste_amount / total_amount
+            water_discount = early_payment_discount * water_discount_proportion
+            waste_discount = early_payment_discount * waste_discount_proportion
+            upper_water_discount = round(upper_water / water_amount * water_discount, 2) if water_amount != 0 else 0
+            lower_water_discount = round(lower_water / water_amount * water_discount, 2) if water_amount != 0 else 0
+            upper_waste_discount = round(upper_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
+            lower_waste_discount = round(lower_waste / waste_amount * waste_discount, 2) if waste_amount != 0 else 0
+
+            text = generate_text(
+                "Water & Solid Waste",
+                total_amount,
+                upper_water + upper_waste,
+                lower_water + lower_waste,
+                from_date,
+                to_date,
+                due_date,
+                upper_water_discount + upper_waste_discount,
+                lower_water_discount + lower_waste_discount,
+                early_payment_date
+            )
+        else:
+            amount = float(request.form.get('amount'))
+            due_date = request.form.get('due_date')
+            upper_amount, lower_amount = calculate_proportions(amount, from_date, to_date, upper_unit_date, lower_unit_date, upper_end_date, lower_end_date, consider_dates, consider_end_dates)
+            service_name = ["Toronto Hydro", "Enbridge GAS", "Toronto Water & Solid Waste Management Services"][service_choice - 1]
+            text = generate_text(service_name, amount, upper_amount, lower_amount, from_date, to_date, due_date)
+        
+        return render_template_string(template, text=text, config=config, datetime=datetime, timedelta=timedelta)
+    
+    return render_template_string(template, config=config, datetime=datetime, timedelta=timedelta)
 
 # Template HTML
 template = '''
@@ -519,9 +428,6 @@ template = '''
             <button type="button" onclick="copyToClipboard()">Copy to Clipboard</button>
         </div>
         {% endif %}
-        <div class="form-group">
-            <button onclick="window.location.href='/ledger'">Go to Ledger</button>
-        </div>
     </div>
     
     <!-- Flatpickr JS -->
@@ -589,226 +495,6 @@ template = '''
             document.execCommand("copy");
             alert("Copied the text: " + copyText.value);
         }
-    </script>
-</body>
-</html>
-'''
-
-# Template HTML para el ledger
-ledger_template = '''
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Ledger</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .header {
-            background-color: #1E90FF;
-            padding: 10px;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .header img {
-            width: 50px;
-            height: auto;
-        }
-        .header h1 {
-            margin: 0;
-            padding-left: 10px;
-            color: white;
-            font-size: 24px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 0 0 10px 10px;
-            position: relative;
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-        }
-        form {
-            display: grid;
-            gap: 20px;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group label {
-            margin-bottom: 5px;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .form-group input[type="checkbox"] {
-            width: auto;
-        }
-        .form-group button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .form-group button:hover {
-            background-color: #0056b3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .pagination a {
-            color: #007bff;
-            padding: 8px 16px;
-            text-decoration: none;
-        }
-        .pagination a:hover {
-            background-color: #ddd;
-            border-radius: 5px;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-            .form-group {
-                gap: 10px;
-            }
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                padding: 8px;
-                font-size: 14px;
-            }
-            .form-group button {
-                padding: 8px 16px;
-                font-size: 14px;
-            }
-            .header img {
-                width: 30px;
-            }
-            .header h1 {
-                font-size: 18px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <img src="https://www.thefastmode.com/media/k2/items/src/b19b32314915badb2f3f99d7ca403bd2.jpg?t=20220913_013643" alt="Logo">
-        <h1>Ledger</h1>
-    </div>
-    <div class="container">
-        <h2>Ledger Transactions</h2>
-        <form method="post">
-            <div class="form-group">
-                <label for="date">Date:</label>
-                <input type="text" id="date" name="date" class="datepicker">
-            </div>
-            <div class="form-group">
-                <label for="transaction_type">Transaction Type:</label>
-                <input type="text" id="transaction_type" name="transaction_type">
-            </div>
-            <div class="form-group">
-                <label for="debit">Debit:</label>
-                <input type="number" step="0.01" id="debit" name="debit">
-            </div>
-            <div class="form-group">
-                <label for="credit">Credit:</label>
-                <input type="number" step="0.01" id="credit" name="credit">
-            </div>
-            <div class="form-group">
-                <button type="submit" name="add">Add Transaction</button>
-            </div>
-        </form>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Transaction Type</th>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Balance</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for index, entry in enumerate(ledger) %}
-                <tr>
-                    <td>{{ entry.date }}</td>
-                    <td>{{ entry.transaction_type }}</td>
-                    <td>{{ entry.debit }}</td>
-                    <td>{{ entry.credit }}</td>
-                    <td>{{ entry.balance }}</td>
-                    <td>
-                        <form method="post">
-                            <button type="submit" name="delete" value="{{ index }}">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="pagination">
-            {% if page > 1 %}
-            <a href="{{ url_for('ledger_page', page=page-1) }}">Previous</a>
-            {% endif %}
-            {% if page < pages %}
-            <a href="{{ url_for('ledger_page', page=page+1) }}">Next</a>
-            {% endif %}
-        </div>
-        <div class="form-group">
-            <button onclick="window.location.href='/'">Back to Main</button>
-        </div>
-    </div>
-
-    <!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Flatpickr for single date selection
-            flatpickr('.datepicker', {
-                dateFormat: 'd/m/Y',
-                allowInput: true
-            });
-        });
     </script>
 </body>
 </html>
